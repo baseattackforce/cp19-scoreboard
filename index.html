@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CP19 Round 1 Scoreboard</title>
-<meta name="description" content="Searchable export of the public CyberPatriot 19 Round 1 scoreboard.">
+<title>CP19 Open Division Scoreboard</title>
+<meta name="description" content="Searchable export of the public CyberPatriot 19 Round 1 scoreboard, Open Division.">
 <style>
 :root{--bg:#f7f7f5;--fg:#1b1b1b;--muted:#666;--card:#fff;--line:#e3e3df;--accent:#1f5fbf;--hl:#fff3c4;--warn:#b5481b}
 @media (prefers-color-scheme:dark){:root{--bg:#141516;--fg:#e8e8e6;--muted:#9a9a96;--card:#1c1d1f;--line:#2c2d30;--accent:#7aa7ff;--hl:#4a3f12;--warn:#ff9466}}
@@ -29,37 +29,35 @@ th.num,td.num{text-align:right}
 tr:last-child td{border-bottom:0}
 tr.ours td{background:var(--hl)}
 td.warn{color:var(--warn);font-weight:700}
+tr.clickable{cursor:pointer}
+tr.clickable:hover td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+tr.detail>td{background:var(--bg);padding:8px 10px 12px;white-space:normal}
+table.inner{width:auto;font-size:13px;margin-bottom:8px}
+table.inner th{position:static;cursor:default;background:none}
+a{color:var(--accent)}
 .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px;font-size:13px;color:var(--muted)}
 .pager button{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
 .pager button:disabled{opacity:.4;cursor:default}
-.tag{font-size:11px;padding:1px 6px;border-radius:10px;border:1px solid var(--line);color:var(--muted)}
-.tag.likely{color:var(--accent);border-color:var(--accent)}
-tr.clickable{cursor:pointer}
-tr.clickable:hover td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
-tr.detail>td{background:var(--bg);padding:8px 10px 12px}
-table.inner{width:auto;font-size:13px}
-table.inner th{position:static;cursor:default;background:none}
 [hidden]{display:none!important}
 footer{margin-top:28px;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
 <main>
-<h1>CyberPatriot 19 · Round 1 Scoreboard</h1>
+<h1>CyberPatriot 19 · Round 1 · Open Division</h1>
 <p class="sub" id="meta"></p>
 <div class="note">Unofficial export of the public CCS scoreboard. Scores and warnings are not verified and may not include penalties; official scores come from the CyberPatriot Program Office. Warning codes: M = Multiple Instances, S = Clock Skew, T = Time Exceeded, U = Multiple UIDs.</div>
 
 <nav role="tablist">
-  <button role="tab" data-tab="teams" aria-selected="true">All Teams</button>
+  <button role="tab" data-tab="teams" aria-selected="true">Teams</button>
   <button role="tab" data-tab="images" aria-selected="false">Image Stats</button>
-  <button role="tab" data-tab="schools" aria-selected="false">Competing Schools</button>
+  <button role="tab" data-tab="schools" aria-selected="false">Registered Schools</button>
 </nav>
 
 <section id="teams">
   <div class="controls">
-    <input type="search" id="q" placeholder="Search team number, state, division…">
+    <input type="search" id="q" placeholder="Search team number or state…">
     <select id="fLoc"><option value="">All locations</option></select>
-    <select id="fDiv"><option value="">All divisions</option></select>
     <span class="count" id="tCount"></span>
   </div>
   <div class="wrap"><table id="tTeams"><thead></thead><tbody></tbody></table></div>
@@ -71,21 +69,22 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
 </section>
 
 <section id="schools" hidden>
-  <div class="note">The scoreboard's map shows team locations only, with no names or team numbers. Each location below is matched to the nearest school in OpenStreetMap. These are guesses: <span class="tag likely">likely</span> means the school is within 300 m. Farther matches may be Civil Air Patrol squadrons, JROTC units or community groups, not the school listed. Schools can't be linked to team numbers.</div>
+  <div class="note" id="sNote"></div>
   <div class="controls">
-    <input type="search" id="sq" placeholder="Search school name…">
-    <label><input type="checkbox" id="sLikely"> Likely matches only</label>
+    <input type="search" id="sq" placeholder="Search school, team nickname or city…">
+    <select id="sState"><option value="">All states</option></select>
     <span class="count" id="sCount"></span>
   </div>
   <div class="wrap"><table id="tSchools"><thead></thead><tbody></tbody></table></div>
   <div class="pager"><button id="sprev">‹ Prev</button><span id="spage"></span><button id="snext">Next ›</button></div>
 </section>
 
-<footer>Source: scoreboard.uscyberpatriot.org (public). School matches © OpenStreetMap contributors (ODbL).</footer>
+<footer>Sources: scoreboard.uscyberpatriot.org and the CyberPatriot 19 registered teams list (uscyberpatriot.org/registered-teams), both public.</footer>
 </main>
 <script>
 const OURS = '19-3818', PER = 100;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
 
 function makeTable(el, cols, getRows, opts = {}) {
   let sort = null, dir = 1, page = 0, shown = [];
@@ -101,7 +100,7 @@ function makeTable(el, cols, getRows, opts = {}) {
       const k = cols[sort].key;
       rows = [...rows].sort((a, b) => {
         const x = a[k], y = b[k];
-        return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), undefined, {numeric: true})) * dir;
+        return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x ?? '').localeCompare(String(y ?? ''), undefined, {numeric: true})) * dir;
       });
     }
     const pages = Math.max(1, Math.ceil(rows.length / PER));
@@ -118,6 +117,7 @@ function makeTable(el, cols, getRows, opts = {}) {
     }
   }
   if (opts.detail) body.onclick = e => {
+    if (e.target.closest('a')) return;
     const tr = e.target.closest('tr[data-i]'); if (!tr) return;
     const next = tr.nextElementSibling;
     if (next && next.classList.contains('detail')) { next.remove(); return; }
@@ -127,53 +127,66 @@ function makeTable(el, cols, getRows, opts = {}) {
   return { render, reset() { page = 0; render(); } };
 }
 
-document.querySelector('nav').onclick = e => {
-  const b = e.target.closest('button'); if (!b) return;
-  document.querySelectorAll('nav button').forEach(x => x.setAttribute('aria-selected', x === b));
-  document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== b.dataset.tab);
-};
+function showTab(name) {
+  document.querySelectorAll('nav button').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === name));
+  document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== name);
+}
+document.querySelector('nav').onclick = e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); };
 
 fetch('data.json').then(r => r.json()).then(d => {
-  document.getElementById('meta').textContent = `${d.teams.length.toLocaleString()} teams · snapshot ${d.exported} · Round 1 was still in progress, so later scores may differ · click a team for its per-image breakdown`;
+  $('meta').textContent = `${d.teams.length.toLocaleString()} Open Division teams on the scoreboard · snapshot ${d.exported} · Round 1 was still in progress, so later scores may differ · click a team for its per-image breakdown`;
 
-  const $ = id => document.getElementById(id);
-  for (const [sel, key] of [[$('fLoc'), 'loc'], [$('fDiv'), 'div']])
-    [...new Set(d.teams.map(t => t[key]))].sort().forEach(v => sel.add(new Option(v, v)));
+  // The scoreboard uses "CAN" for Canada; the registration list uses province codes with country "CA".
+  const regIn = loc => d.schools.filter(s => loc === 'CAN' ? s.country === 'CA' : s.state === loc);
 
+  [...new Set(d.teams.map(t => t.loc))].sort().forEach(v => $('fLoc').add(new Option(v, v)));
   const teamRows = () => {
-    const q = $('q').value.trim().toLowerCase(), loc = $('fLoc').value, div = $('fDiv').value;
-    return d.teams.filter(t => (!loc || t.loc === loc) && (!div || t.div === div) &&
-      (!q || [t.team, t.loc, t.div, t.tier, t.warn].join(' ').toLowerCase().includes(q)));
+    const q = $('q').value.trim().toLowerCase(), loc = $('fLoc').value;
+    return d.teams.filter(t => (!loc || t.loc === loc) && (!q || [t.team, t.loc, t.warn].join(' ').toLowerCase().includes(q)));
   };
   const teams = makeTable($('tTeams'), [
-    {key: 'rank', label: 'Rank', num: true}, {key: 'team', label: 'Team'}, {key: 'loc', label: 'Location'},
-    {key: 'div', label: 'Division'}, {key: 'tier', label: 'Tier'}, {key: 'imgs', label: 'Images', num: true},
+    {key: 'rank', label: 'Open rank', num: true}, {key: 'overall', label: 'Overall', num: true},
+    {key: 'team', label: 'Team'}, {key: 'loc', label: 'Location'}, {key: 'imgs', label: 'Images', num: true},
     {key: 'play', label: 'Play time', num: true}, {key: 'scoreTime', label: 'Score time', num: true},
     {key: 'warn', label: '**', cls: () => 'warn'}, {key: 'score', label: 'CCS score', num: true},
     {key: 'win', label: 'Windows', num: true}, {key: 'mint', label: 'Mint', num: true}
   ], teamRows, {
     rowClass: r => r.team === OURS ? 'ours' : '',
     pager: [$('prev'), $('next'), $('page'), $('tCount')],
-    detail: r => r.detail.length ? `<table class="inner"><tr><th>Image</th><th class="num">Time</th><th class="num">Found</th><th class="num">Remain</th><th class="num">Pen</th><th>**</th><th class="num">Score</th></tr>` +
-      r.detail.map(x => `<tr><td>${esc(x.image)}</td><td class="num">${esc(x.time)}</td><td class="num">${x.found}</td><td class="num">${x.remain}</td><td class="num">${x.pen}</td><td class="warn">${esc(x.warn)}</td><td class="num">${x.score}</td></tr>`).join('') + '</table>'
-      : '<span class="sub">No per-image data.</span>'
+    detail: r => {
+      const imgs = r.detail.length ? `<table class="inner"><tr><th>Image</th><th class="num">Time</th><th class="num">Found</th><th class="num">Remain</th><th class="num">Pen</th><th>**</th><th class="num">Score</th></tr>` +
+        r.detail.map(x => `<tr><td>${esc(x.image)}</td><td class="num">${esc(x.time)}</td><td class="num">${x.found}</td><td class="num">${x.remain}</td><td class="num">${x.pen}</td><td class="warn">${esc(x.warn)}</td><td class="num">${x.score}</td></tr>`).join('') + '</table>'
+        : '<div class="sub">No per-image data.</div>';
+      const n = regIn(r.loc).length;
+      return imgs + `<div class="sub" style="margin:0">Team names aren't public on the scoreboard. ${n.toLocaleString()} Open teams are registered in ${esc(r.loc)}: <a href="#" data-state="${esc(r.loc)}">see the list</a>.</div>`;
+    }
   });
-  ['q', 'fLoc', 'fDiv'].forEach(id => $(id).addEventListener('input', teams.reset));
+  $('tTeams').addEventListener('click', e => {
+    const a = e.target.closest('a[data-state]'); if (!a) return;
+    e.preventDefault();
+    const loc = a.dataset.state;
+    $('sState').value = loc; $('sq').value = ''; schools.reset(); showTab('schools');
+  });
+  ['q', 'fLoc'].forEach(id => $(id).addEventListener('input', teams.reset));
   teams.render();
 
   makeTable($('tImages'), d.imageCols.map((c, i) => ({key: i, label: c, num: i >= 3})), () => d.images).render();
 
+  $('sNote').textContent = `Official CyberPatriot 19 registration list, Open Division only (${d.schools.length.toLocaleString()} teams, list updated ${d.regUpdated}). It has school and team names but no team numbers, so it can't be linked to scoreboard rows one-to-one. Registered teams that haven't competed yet are included.`;
+  const states = [...new Set(d.schools.map(s => s.country === 'CA' ? 'CAN' : s.state))].filter(Boolean).sort();
+  states.forEach(v => $('sState').add(new Option(v, v)));
   const schoolRows = () => {
-    const q = $('sq').value.trim().toLowerCase(), likely = $('sLikely').checked;
-    return d.schools.filter(s => (!likely || s.dist <= 300) && (!q || s.name.toLowerCase().includes(q)));
+    const q = $('sq').value.trim().toLowerCase(), st = $('sState').value;
+    return (st ? regIn(st) : d.schools).filter(s => !q || [s.org, s.nick, s.city].join(' ').toLowerCase().includes(q));
   };
   const schools = makeTable($('tSchools'), [
-    {key: 'name', label: 'Nearest school'},
-    {key: 'dist', label: 'Distance', num: true, fmt: s => s.dist == null ? '—' : `${s.dist.toLocaleString()} m ${s.dist <= 300 ? '<span class="tag likely">likely</span>' : ''}`},
-    {key: 'teams', label: 'Teams here', num: true},
-    {key: 'lat', label: 'Map', fmt: s => `<a href="https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lon}#map=17/${s.lat}/${s.lon}" target="_blank" rel="noopener">${s.lat}, ${s.lon}</a>`}
-  ], schoolRows, {pager: [$('sprev'), $('snext'), $('spage'), $('sCount')]});
-  ['sq', 'sLikely'].forEach(id => $(id).addEventListener('input', schools.reset));
+    {key: 'org', label: 'School / organization'}, {key: 'nick', label: 'Team nickname'},
+    {key: 'city', label: 'City'}, {key: 'state', label: 'State'}, {key: 'zip', label: 'ZIP'}
+  ], schoolRows, {
+    rowClass: s => s.org === 'Jordan High School' && s.city === 'Fulshear' ? 'ours' : '',
+    pager: [$('sprev'), $('snext'), $('spage'), $('sCount')]
+  });
+  ['sq', 'sState'].forEach(id => $(id).addEventListener('input', schools.reset));
   schools.render();
 });
 </script>
