@@ -38,6 +38,8 @@ a{color:var(--accent)}
 .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px;font-size:13px;color:var(--muted)}
 .pager button{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
 .pager button:disabled{opacity:.4;cursor:default}
+.tag{font-size:11px;padding:1px 6px;border-radius:10px;border:1px solid var(--line);color:var(--muted);margin-left:4px}
+.tag.certain,.tag.confirmed{color:var(--accent);border-color:var(--accent)}
 [hidden]{display:none!important}
 footer{margin-top:28px;color:var(--muted);font-size:12px}
 </style>
@@ -55,9 +57,11 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
 </nav>
 
 <section id="teams">
+  <div class="note" id="sNoteTeams"></div>
   <div class="controls">
     <input type="search" id="q" placeholder="Search team number or state…">
     <select id="fLoc"><option value="">All locations</option></select>
+    <label><input type="checkbox" id="fKnown"> Known school only</label>
     <span class="count" id="tCount"></span>
   </div>
   <div class="wrap"><table id="tTeams"><thead></thead><tbody></tbody></table></div>
@@ -136,17 +140,23 @@ document.querySelector('nav').onclick = e => { const b = e.target.closest('butto
 fetch('data.json').then(r => r.json()).then(d => {
   $('meta').textContent = `${d.teams.length.toLocaleString()} Open Division teams on the scoreboard · snapshot ${d.exported} · Round 1 was still in progress, so later scores may differ · click a team for its per-image breakdown`;
 
+  d.teams.forEach(t => t.schoolName = t.school ? t.school.org : '');
+  $('sNoteTeams').textContent = `School names aren't on the scoreboard. ${d.teams.filter(t => t.school).length} teams have one inferred from the registration list: "certain" means the only registered Open school in that state; "likely" means a block of consecutive team numbers (coaches' teams get consecutive numbers) that only one school in the state registered enough teams to fill.`;
+
   // The scoreboard uses "CAN" for Canada; the registration list uses province codes with country "CA".
   const regIn = loc => d.schools.filter(s => loc === 'CAN' ? s.country === 'CA' : s.state === loc);
 
   [...new Set(d.teams.map(t => t.loc))].sort().forEach(v => $('fLoc').add(new Option(v, v)));
   const teamRows = () => {
     const q = $('q').value.trim().toLowerCase(), loc = $('fLoc').value;
-    return d.teams.filter(t => (!loc || t.loc === loc) && (!q || [t.team, t.loc, t.warn].join(' ').toLowerCase().includes(q)));
+    return d.teams.filter(t => (!loc || t.loc === loc) && (!$('fKnown').checked || t.school) &&
+      (!q || [t.team, t.loc, t.warn, t.schoolName].join(' ').toLowerCase().includes(q)));
   };
   const teams = makeTable($('tTeams'), [
     {key: 'rank', label: 'Open rank', num: true}, {key: 'overall', label: 'Overall', num: true},
-    {key: 'team', label: 'Team'}, {key: 'loc', label: 'Location'}, {key: 'imgs', label: 'Images', num: true},
+    {key: 'team', label: 'Team'}, {key: 'loc', label: 'Location'},
+    {key: 'schoolName', label: 'School', fmt: r => r.school ? `${esc(r.school.org)} <span class="tag ${r.school.conf}">${r.school.conf}</span>` : '<span class="sub">unknown</span>'},
+    {key: 'imgs', label: 'Images', num: true},
     {key: 'play', label: 'Play time', num: true}, {key: 'scoreTime', label: 'Score time', num: true},
     {key: 'warn', label: '**', cls: () => 'warn'}, {key: 'score', label: 'CCS score', num: true},
     {key: 'win', label: 'Windows', num: true}, {key: 'mint', label: 'Mint', num: true}
@@ -158,7 +168,8 @@ fetch('data.json').then(r => r.json()).then(d => {
         r.detail.map(x => `<tr><td>${esc(x.image)}</td><td class="num">${esc(x.time)}</td><td class="num">${x.found}</td><td class="num">${x.remain}</td><td class="num">${x.pen}</td><td class="warn">${esc(x.warn)}</td><td class="num">${x.score}</td></tr>`).join('') + '</table>'
         : '<div class="sub">No per-image data.</div>';
       const n = regIn(r.loc).length;
-      return imgs + `<div class="sub" style="margin:0">Team names aren't public on the scoreboard. ${n.toLocaleString()} Open teams are registered in ${esc(r.loc)}: <a href="#" data-state="${esc(r.loc)}">see the list</a>.</div>`;
+      const why = r.school ? `School: ${esc(r.school.org)}, ${esc(r.school.city)} (${r.school.conf}: ${esc(r.school.why)}). ` : `School unknown. `;
+      return imgs + `<div class="sub" style="margin:0">${why}${n.toLocaleString()} Open teams are registered in ${esc(r.loc)}: <a href="#" data-state="${esc(r.loc)}">see the list</a>.</div>`;
     }
   });
   $('tTeams').addEventListener('click', e => {
@@ -167,7 +178,7 @@ fetch('data.json').then(r => r.json()).then(d => {
     const loc = a.dataset.state;
     $('sState').value = loc; $('sq').value = ''; schools.reset(); showTab('schools');
   });
-  ['q', 'fLoc'].forEach(id => $(id).addEventListener('input', teams.reset));
+  ['q', 'fLoc', 'fKnown'].forEach(id => $(id).addEventListener('input', teams.reset));
   teams.render();
 
   makeTable($('tImages'), d.imageCols.map((c, i) => ({key: i, label: c, num: i >= 3})), () => d.images).render();

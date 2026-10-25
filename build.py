@@ -14,6 +14,9 @@ for r in rows('cp19_r1_image_scores.csv')[1:]:
     per_image[r[0]][key] = {'image': r[1], 'time': r[2], 'found': int(r[3]), 'remain': int(r[4]),
                             'pen': int(r[5]), 'warn': r[6], 'score': int(r[7])}
 
+inferred = json.load(open(os.path.join(SRC, 'inferred_schools.json')))
+inferred['19-3818'] = {'org': 'Jordan High School', 'city': 'Fulshear', 'conf': 'confirmed', 'why': 'our team'}
+
 teams = []
 for r in rows('cp19_r1_all_teams.csv')[1:]:
     if r[3] != 'Open':
@@ -22,7 +25,8 @@ for r in rows('cp19_r1_all_teams.csv')[1:]:
     teams.append({'rank': len(teams) + 1, 'overall': int(r[0]), 'team': r[1], 'loc': r[2], 'tier': r[4],
                   'imgs': int(r[5]), 'play': r[6], 'scoreTime': r[7], 'warn': r[8], 'score': int(r[9]),
                   'win': imgs.get('win', {}).get('score'), 'mint': imgs.get('mint', {}).get('score'),
-                  'detail': [imgs[k] for k in ('win', 'mint') if k in imgs]})
+                  'detail': [imgs[k] for k in ('win', 'mint') if k in imgs],
+                  'school': inferred.get(r[1])})
 
 img = rows('cp19_r1_image_stats.csv')
 images = [r for r in img[1:] if r[0] == 'Open']
