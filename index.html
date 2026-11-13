@@ -2,27 +2,42 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CP19 Open Division Scoreboard</title>
-<meta name="description" content="Searchable export of the public CyberPatriot 19 Round 1 scoreboard, Open Division.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CP19 Open Scoreboard</title>
+<meta name="description" content="Searchable snapshots of the public CyberPatriot 19 scoreboard, Open Division, with per-team score graphs and an all-teams overlay.">
 <style>
-:root{--bg:#f7f7f5;--fg:#1b1b1b;--muted:#666;--card:#fff;--line:#e3e3df;--accent:#1f5fbf;--hl:#fff3c4;--warn:#b5481b}
-@media (prefers-color-scheme:dark){:root{--bg:#141516;--fg:#e8e8e6;--muted:#9a9a96;--card:#1c1d1f;--line:#2c2d30;--accent:#7aa7ff;--hl:#4a3f12;--warn:#ff9466}}
+/* Layout: one control bar (round, snapshot, view) above four views: Teams table with per-team graphs, Overlay of every team's score line, Image stats, Registered schools. */
+:root{
+  --bg:#f4f6f8;--card:#ffffff;--fg:#17202a;--muted:#5e6b77;--line:#dde3e8;--grid:#e9eef2;
+  --accent:#1f5fbf;--hl:#fff3c4;--warn:#b5481b;--ok:#1d7a3f;
+  --crowd:rgba(31,95,191,.09);--median:#c2410c;--top:#7c3aed;--pick:#0b8a7d;
+  --mono:ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#111417;--card:#1a1e22;--fg:#e6e9ec;--muted:#98a2ab;--line:#2b3137;--grid:#22282d;
+  --accent:#7aa7ff;--hl:#4a3f12;--warn:#ff9466;--ok:#6cd38f;
+  --crowd:rgba(122,167,255,.10);--median:#fb923c;--top:#b794f4;--pick:#4fd1c5;color-scheme:dark}}
+:root[data-theme=dark]{
+  --bg:#111417;--card:#1a1e22;--fg:#e6e9ec;--muted:#98a2ab;--line:#2b3137;--grid:#22282d;
+  --accent:#7aa7ff;--hl:#4a3f12;--warn:#ff9466;--ok:#6cd38f;
+  --crowd:rgba(122,167,255,.10);--median:#fb923c;--top:#b794f4;--pick:#4fd1c5;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
-h1{font-size:22px;margin:0 0 4px}
-.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
-.note{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:18px}
-.rounds{display:flex;gap:6px;margin:0 0 14px}
-.rounds a{font:inherit;font-size:13px;font-weight:600;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--card)}
-.rounds a[aria-current=page]{color:var(--card);background:var(--accent);border-color:var(--accent)}
-nav{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
-nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;padding:8px 12px;cursor:pointer;white-space:nowrap}
-nav button[aria-selected=true]{color:var(--fg);border-color:var(--accent);font-weight:600}
+main{max-width:1180px;margin:0 auto;padding-block:22px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:22px;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--muted);font-size:13px;margin:0}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);margin:12px 0 14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{font:inherit;font-size:13px;font-weight:600;border:0;background:none;color:var(--muted);padding:6px 12px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--card)}
+.field{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+select,input{font:inherit;font-size:14px;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:6px 9px}
+input[type=search]{flex:1 1 220px;min-width:0}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.badge.live{color:var(--warn)}.badge.final{color:var(--ok)}
+.note{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:12px}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
-input,select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:7px 9px}
-input[type=search]{flex:1 1 240px;min-width:0}
 .count{color:var(--muted);font-size:13px;margin-left:auto}
 .wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px}
 table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
@@ -34,49 +49,98 @@ tr.ours td{background:var(--hl)}
 td.warn{color:var(--warn);font-weight:700}
 tr.clickable{cursor:pointer}
 tr.clickable:hover td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
-tr.detail>td{background:var(--bg);padding:8px 10px 12px;white-space:normal}
-table.inner{width:auto;font-size:13px;margin-bottom:8px}
+tr.detail>td{background:var(--bg);padding:10px 12px 14px;white-space:normal}
+.detailgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px;align-items:start}
+table.inner{width:auto;font-size:13px;margin-bottom:8px;background:var(--card);border:1px solid var(--line);border-radius:6px}
 table.inner th{position:static;cursor:default;background:none}
+.mini{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px}
+.mini svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:4px}
+.sw{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
 a{color:var(--accent)}
+.linkbtn{font:inherit;font-size:13px;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
 .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px;font-size:13px;color:var(--muted)}
 .pager button{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
 .pager button:disabled{opacity:.4;cursor:default}
 .tag{font-size:11px;padding:1px 6px;border-radius:10px;border:1px solid var(--line);color:var(--muted);margin-left:4px}
 .tag.certain,.tag.confirmed{color:var(--accent);border-color:var(--accent)}
+.cuts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.cut{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+.cut span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.cut b{font:600 18px var(--mono);font-variant-numeric:tabular-nums}
+.ovchart{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px;min-width:0}
+.ovchart header{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between}
+.ovchart h2{font-size:16px;margin:0}
+.pace{font:12px var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:12px;font-variant-numeric:tabular-nums}
+.pace b{color:var(--fg);font-weight:600}
+canvas{width:100%;height:280px;display:block;cursor:crosshair}
+.tip{font:12px var(--mono);color:var(--muted);min-height:1.4em;margin-top:4px}
+.tip b{color:var(--fg)}
+.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.barcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+.barcard h3{font-size:13px;margin:0 0 6px}
+.barrow{display:grid;grid-template-columns:8.5em 1fr 2.5em;gap:8px;align-items:center;font:12px var(--mono);font-variant-numeric:tabular-nums;padding:1px 0}
+.barrow i{height:9px;border-radius:3px;background:var(--accent);display:block}
+.barrow i.zero{background:var(--ok)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
 [hidden]{display:none!important}
 footer{margin-top:28px;color:var(--muted);font-size:12px}
+@media (max-width:820px){.detailgrid{grid-template-columns:1fr}canvas{height:220px}}
 </style>
 </head>
 <body>
 <main>
-<h1 id="h1">CyberPatriot 19 · Round 1 · Open Division</h1>
-<div class="rounds"><a href="#r1" id="lr1">Round 1</a><a href="#r2" id="lr2">Round 2</a></div>
-<p class="sub" id="meta"></p>
-<div class="note">Unofficial export of the public CCS scoreboard. Scores and warnings are not verified and may not include penalties; official scores come from the CyberPatriot Program Office. Warning codes: M = Multiple Instances, S = Clock Skew, T = Time Exceeded, U = Multiple UIDs.</div>
+<h1>CyberPatriot 19 · Open Division scoreboard</h1>
+<p class="sub" id="meta">Loading…</p>
 
-<nav role="tablist">
-  <button role="tab" data-tab="teams" aria-selected="true">Teams</button>
-  <button role="tab" data-tab="images" aria-selected="false">Image Stats</button>
-  <button role="tab" data-tab="schools" aria-selected="false">Registered Schools</button>
-</nav>
+<div class="bar" role="toolbar" aria-label="What to show">
+  <span class="field">Round <span class="seg" id="roundSeg"></span></span>
+  <label class="field" for="snap">Snapshot <select id="snap"></select></label>
+  <span id="snapBadge"></span>
+  <span class="seg" id="viewSeg">
+    <button data-view="teams">Teams</button><button data-view="overlay">Overlay</button><button data-view="images">Image stats</button><button data-view="schools">Schools</button>
+  </span>
+</div>
 
-<section id="teams">
-  <div class="note" id="sNoteTeams"></div>
+<section id="v-teams">
+  <div class="note" id="teamsNote"></div>
   <div class="controls">
-    <input type="search" id="q" placeholder="Search team number or state…">
+    <input type="search" id="q" placeholder="Search team number, state or school…">
     <select id="fLoc"><option value="">All locations</option></select>
-    <label><input type="checkbox" id="fKnown"> Known school only</label>
+    <label class="sub"><input type="checkbox" id="fKnown"> Known school only</label>
+    <label class="sub"><input type="checkbox" id="fGraph"> Has graph</label>
     <span class="count" id="tCount"></span>
   </div>
   <div class="wrap"><table id="tTeams"><thead></thead><tbody></tbody></table></div>
   <div class="pager"><button id="prev">‹ Prev</button><span id="page"></span><button id="next">Next ›</button></div>
 </section>
 
-<section id="images" hidden>
+<section id="v-overlay" hidden>
+  <div class="cuts" id="cuts"></div>
+  <div class="controls">
+    <label class="field" for="ovField">Teams <select id="ovField">
+      <option value="10">Top 10</option><option value="25">Top 25</option><option value="50">Top 50</option>
+      <option value="100" selected>Top 100</option><option value="250">Top 250</option><option value="0">All with graphs</option></select></label>
+    <label class="field" for="ovFind">Highlight <input id="ovFind" placeholder="19-1074" autocomplete="off" style="width:120px"></label>
+    <button class="pager" id="ovClear" style="margin:0;padding:0;border:0;background:none"><span class="linkbtn">Clear</span></button>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--crowd);height:6px"></i>each team</span>
+      <span><i class="sw" style="background:var(--median)"></i>median of shown teams</span>
+      <span><i class="sw" style="background:var(--top)"></i>full marks</span>
+      <span><i class="sw" style="background:var(--pick)"></i>highlighted</span>
+    </div>
+  </div>
+  <p class="sub" style="margin-bottom:10px">Time is minutes since each team started, so teams that played at different hours line up. Hover to identify a line; click to highlight it on every image.</p>
+  <div id="ovCharts"></div>
+  <h2 style="font-size:15px;margin:18px 0 8px">Where the shown teams finished on each image</h2>
+  <div class="bars" id="ovBars"></div>
+</section>
+
+<section id="v-images" hidden>
   <div class="wrap"><table id="tImages"><thead></thead><tbody></tbody></table></div>
 </section>
 
-<section id="schools" hidden>
+<section id="v-schools" hidden>
   <div class="note" id="sNote"></div>
   <div class="controls">
     <input type="search" id="sq" placeholder="Search school, team nickname or city…">
@@ -87,127 +151,249 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
   <div class="pager"><button id="sprev">‹ Prev</button><span id="spage"></span><button id="snext">Next ›</button></div>
 </section>
 
-<footer>Sources: scoreboard.uscyberpatriot.org and the CyberPatriot 19 registered teams list (uscyberpatriot.org/registered-teams), both public.</footer>
+<footer>Unofficial snapshots of the public CCS scoreboard (scoreboard.uscyberpatriot.org) and the public CyberPatriot 19 registered-teams list. Scores and warnings are not verified and may not include penalties; official scores come from the CyberPatriot Program Office. Warning codes: M = Multiple Instances, S = Clock Skew, T = Time Exceeded, U = Multiple UIDs.</footer>
 </main>
 <script>
-const OURS = '19-3818', PER = 100;
+const PER = 100;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const getJSON = u => fetch(u).then(r => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); });
 
+let IDX, SCH, R, SNAPMETA, D, TL, VIEW = 'teams', OURS = '19-3818';
+const cache = {};
+
+// ---------- state in the hash: #r2_2026-11-13_1020_overlay ----------
+function readHash() {
+  const m = location.hash.match(/^#r(\d)(?:_(\d{4}-\d\d-\d\d_\d{4}))?(?:_(teams|overlay|images|schools))?$/);
+  return m ? {round: +m[1], snap: m[2], view: m[3]} : {};
+}
+function writeHash() { history.replaceState(null, '', `#r${R.round}_${SNAPMETA.id}_${VIEW}`); }
+
+// ---------- generic sortable, paged table ----------
 function makeTable(el, cols, getRows, opts = {}) {
   let sort = null, dir = 1, page = 0, shown = [];
   const head = el.querySelector('thead'), body = el.querySelector('tbody');
-  head.innerHTML = '<tr>' + cols.map((c, i) => `<th data-i="${i}" class="${c.num ? 'num' : ''}">${c.label}</th>`).join('') + '</tr>';
-  head.onclick = e => {
-    const th = e.target.closest('th'); if (!th) return;
-    const i = +th.dataset.i; dir = sort === i ? -dir : 1; sort = i; page = 0; render();
-  };
+  const drawHead = () => head.innerHTML = '<tr>' + cols().map((c, i) => `<th data-i="${i}" class="${c.num ? 'num' : ''}">${c.label}</th>`).join('') + '</tr>';
+  head.onclick = e => { const th = e.target.closest('th'); if (!th) return; const i = +th.dataset.i; dir = sort === i ? -dir : 1; sort = i; page = 0; render(); };
   function render() {
-    let rows = getRows();
-    if (sort !== null) {
-      const k = cols[sort].key;
-      rows = [...rows].sort((a, b) => {
-        const x = a[k], y = b[k];
-        return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x ?? '').localeCompare(String(y ?? ''), undefined, {numeric: true})) * dir;
-      });
+    drawHead();
+    const C = cols(); let rows = getRows();
+    if (sort !== null && C[sort]) {
+      const c = C[sort], val = c.val || (r => r[c.key]);
+      rows = [...rows].sort((a, b) => { const x = val(a), y = val(b);
+        if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+        return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), undefined, {numeric: true})) * dir; });
     }
-    const pages = Math.max(1, Math.ceil(rows.length / PER));
-    page = Math.min(page, pages - 1);
+    const pages = Math.max(1, Math.ceil(rows.length / PER)); page = Math.min(page, pages - 1);
     shown = rows.slice(page * PER, page * PER + PER);
-    body.innerHTML = shown.map((r, i) =>
-      `<tr data-i="${i}" class="${opts.rowClass ? opts.rowClass(r) : ''} ${opts.detail ? 'clickable' : ''}">` + cols.map(c => `<td class="${c.num ? 'num' : ''} ${c.cls ? c.cls(r) : ''}">${c.fmt ? c.fmt(r) : esc(r[c.key])}</td>`).join('') + '</tr>'
-    ).join('');
-    if (opts.pager) {
-      const [p, n, label, count] = opts.pager;
-      p.disabled = page === 0; n.disabled = page >= pages - 1;
-      label.textContent = `Page ${page + 1} of ${pages}`;
-      count.textContent = `${rows.length.toLocaleString()} shown`;
-    }
+    body.innerHTML = shown.length ? shown.map((r, i) =>
+      `<tr data-i="${i}" class="${opts.rowClass ? opts.rowClass(r) : ''} ${opts.detail ? 'clickable' : ''}">` +
+      C.map(c => `<td class="${c.num ? 'num' : ''} ${c.cls ? c.cls(r) : ''}">${c.fmt ? c.fmt(r) : esc((c.val || (x => x[c.key]))(r))}</td>`).join('') + '</tr>').join('')
+      : `<tr><td class="empty" colspan="${C.length}">Nothing matches.</td></tr>`;
+    if (opts.pager) { const [p, n, label, count] = opts.pager; p.disabled = page === 0; n.disabled = page >= pages - 1; label.textContent = `Page ${page + 1} of ${pages}`; count.textContent = `${rows.length.toLocaleString()} shown`; }
   }
   if (opts.detail) body.onclick = e => {
-    if (e.target.closest('a')) return;
+    if (e.target.closest('a,button')) return;
     const tr = e.target.closest('tr[data-i]'); if (!tr) return;
     const next = tr.nextElementSibling;
     if (next && next.classList.contains('detail')) { next.remove(); return; }
-    tr.insertAdjacentHTML('afterend', `<tr class="detail"><td colspan="${cols.length}">${opts.detail(shown[+tr.dataset.i])}</td></tr>`);
+    tr.insertAdjacentHTML('afterend', `<tr class="detail"><td colspan="${cols().length}">${opts.detail(shown[+tr.dataset.i])}</td></tr>`);
   };
   if (opts.pager) { opts.pager[0].onclick = () => { page--; render(); }; opts.pager[1].onclick = () => { page++; render(); }; }
-  return { render, reset() { page = 0; render(); } };
+  return {render, reset() { page = 0; render(); }};
 }
 
-function showTab(name) {
-  document.querySelectorAll('nav button').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === name));
-  document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== name);
+// ---------- timelines ----------
+function series(team, k) {          // -> [[minutesSinceStart, score], ...]
+  const t = TL && TL[team]; if (!t || !t[k]) return null;
+  const a = t[k].split(',').map(Number), out = [];
+  for (let i = 0; i < a.length; i += 2) out.push([a[i], a[i + 1]]);
+  return out;
 }
-document.querySelector('nav').onclick = e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); };
+const at = (s, m) => { let v = null; for (const [t, sc] of s) { if (t <= m) v = sc; else break; } return v; };
+const firstAt = (s, th) => { for (const [t, sc] of s) if (sc >= th) return t; return null; };
+const median = a => { a = a.filter(x => x != null).sort((x, y) => x - y); return a.length ? a[Math.floor(a.length / 2)] : null; };
+const q1 = a => { a = a.filter(x => x != null).sort((x, y) => x - y); return a.length ? a[Math.floor(a.length / 4)] : null; };
 
-const ROUND = location.hash === '#r2' ? 2 : 1;
-window.addEventListener('hashchange', () => location.reload());
-$('lr' + ROUND).setAttribute('aria-current', 'page');
-$('h1').textContent = `CyberPatriot 19 · Round ${ROUND} · Open Division`;
-fetch(ROUND === 2 ? 'data_r2.json' : 'data.json').then(r => r.json()).then(d => {
-  $('meta').textContent = `${d.teams.length.toLocaleString()} Open Division teams on the scoreboard · snapshot ${d.exported} · Round ${d.round || 1} was still in progress, so later scores may differ · click a team for its per-image breakdown`;
+function miniChart(team) {
+  const imgs = R.images, colors = ['--accent', '--median', '--top', '--pick'];
+  const all = imgs.map(([k]) => series(team, k));
+  if (!all.some(Boolean)) return '<div class="sub">No graph for this team in this snapshot.</div>';
+  const xmax = Math.max(60, ...all.filter(Boolean).map(s => s[s.length - 1][0])), W = 560, H = 210, L = 30, B = 22, T = 8, Rr = 8;
+  const x = m => L + (W - L - Rr) * m / xmax, y = s => T + (H - T - B) * (1 - Math.max(-10, s) / 100);
+  let g = '';
+  for (let s = 0; s <= 100; s += 25) g += `<line x1="${L}" x2="${W - Rr}" y1="${y(s)}" y2="${y(s)}" stroke="var(--grid)"/><text x="4" y="${y(s) + 4}" font-size="10" fill="var(--muted)">${s}</text>`;
+  const step = xmax > 300 ? 60 : 30;
+  for (let m = 0; m <= xmax; m += step) g += `<text x="${x(m) - 8}" y="${H - 6}" font-size="10" fill="var(--muted)">${m}m</text>`;
+  all.forEach((s, i) => { if (!s) return; let d = ''; s.forEach(([m, sc], j) => { d += j ? ` L${x(m).toFixed(1)},${y(s[j - 1][1]).toFixed(1)} L${x(m).toFixed(1)},${y(sc).toFixed(1)}` : `M${x(m).toFixed(1)},${y(sc).toFixed(1)}`; });
+    g += `<path d="${d}" fill="none" stroke="var(${colors[i]})" stroke-width="2"/>`; });
+  const legend = imgs.map(([k, label], i) => all[i] ? `<span><i class="sw" style="background:var(${colors[i]})"></i>${esc(label)}</span>` : '').join('');
+  return `<div class="mini"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Score over time for ${esc(team)}">${g}</svg><div class="legend">${legend}<span>minutes since the team started</span></div></div>`;
+}
 
-  d.teams.forEach(t => t.schoolName = t.school ? t.school.org : '');
-  $('sNoteTeams').textContent = `School names aren't on the scoreboard. ${d.teams.filter(t => t.school).length} teams have one inferred from the registration list: "certain" means the only registered Open school in that state; "likely" means a block of consecutive team numbers (coaches' teams get consecutive numbers) that only one school in the state registered enough teams to fill.`;
-
-  // The scoreboard uses "CAN" for Canada; the registration list uses province codes with country "CA".
-  const regIn = loc => d.schools.filter(s => loc === 'CAN' ? s.country === 'CA' : s.state === loc);
-
-  [...new Set(d.teams.map(t => t.loc))].sort().forEach(v => $('fLoc').add(new Option(v, v)));
-  const teamRows = () => {
-    const q = $('q').value.trim().toLowerCase(), loc = $('fLoc').value;
-    return d.teams.filter(t => (!loc || t.loc === loc) && (!$('fKnown').checked || t.school) &&
-      (!q || [t.team, t.loc, t.warn, t.schoolName].join(' ').toLowerCase().includes(q)));
-  };
-  const teams = makeTable($('tTeams'), [
+// ---------- views ----------
+let teamsTable, imagesTable, schoolsTable;
+function teamCols() {
+  const c = [
     {key: 'rank', label: 'Open rank', num: true}, {key: 'overall', label: 'Overall', num: true},
-    {key: 'team', label: 'Team'}, {key: 'loc', label: 'Location'},
-    {key: 'schoolName', label: 'School', fmt: r => r.school ? `${esc(r.school.org)} <span class="tag ${r.school.conf}">${r.school.conf}</span>` : '<span class="sub">unknown</span>'},
-    {key: 'imgs', label: 'Images', num: true},
+    {key: 'team', label: 'Team'}, {key: 'loc', label: 'Loc'},
+    {key: 'school', label: 'School', val: r => schoolOf(r.team)?.org, fmt: r => { const s = schoolOf(r.team); return s ? `${esc(s.org)} <span class="tag ${s.conf}">${s.conf}</span>` : '<span class="sub">unknown</span>'; }},
     {key: 'play', label: 'Play time', num: true}, {key: 'scoreTime', label: 'Score time', num: true},
-    {key: 'warn', label: '**', cls: () => 'warn'}, {key: 'score', label: 'CCS score', num: true},
-    ...(d.imgCols || [['win', 'Windows'], ['mint', 'Mint']]).map(([key, label]) => ({key, label, num: true}))
-  ], teamRows, {
-    rowClass: r => r.team === OURS ? 'ours' : '',
-    pager: [$('prev'), $('next'), $('page'), $('tCount')],
-    detail: r => {
-      const imgs = r.detail.length ? `<table class="inner"><tr><th>Image</th><th class="num">Time</th><th class="num">Found</th><th class="num">Remain</th><th class="num">Pen</th><th>**</th><th class="num">Score</th></tr>` +
-        r.detail.map(x => `<tr><td>${esc(x.image)}</td><td class="num">${esc(x.time)}</td><td class="num">${x.found}</td><td class="num">${x.remain}</td><td class="num">${x.pen}</td><td class="warn">${esc(x.warn)}</td><td class="num">${x.score}</td></tr>`).join('') + '</table>'
-        : '<div class="sub">No per-image data.</div>';
-      const n = regIn(r.loc).length;
-      const why = r.school ? `School: ${esc(r.school.org)}, ${esc(r.school.city)} (${r.school.conf}: ${esc(r.school.why)}). ` : `School unknown. `;
-      return imgs + `<div class="sub" style="margin:0">${why}${n.toLocaleString()} Open teams are registered in ${esc(r.loc)}: <a href="#" data-state="${esc(r.loc)}">see the list</a>.</div>`;
-    }
+    {key: 'warn', label: '**', cls: () => 'warn'}, {key: 'score', label: 'Images score', num: true}];
+  R.images.forEach(([k, label]) => c.push({key: k, label, num: true, val: r => r.img[k] ? r.img[k].score : null}));
+  if (D.teams.some(t => t.total != null)) c.push({key: 'total', label: 'Total (with Cisco)', num: true});
+  c.push({key: 'g', label: 'Graph', val: r => TL && TL[r.team] ? 1 : 0, fmt: r => TL && TL[r.team] ? '●' : ''});
+  return c;
+}
+const schoolOf = team => SCH.inferred[team];
+function teamRows() {
+  const q = $('q').value.trim().toLowerCase(), loc = $('fLoc').value;
+  return D.teams.filter(t => (!loc || t.loc === loc) && (!$('fKnown').checked || schoolOf(t.team)) && (!$('fGraph').checked || (TL && TL[t.team])) &&
+    (!q || [t.team, t.loc, t.warn, schoolOf(t.team)?.org].join(' ').toLowerCase().includes(q)));
+}
+function teamDetail(r) {
+  const rows = R.images.map(([k, label]) => { const x = r.img[k]; return x ? `<tr><td>${esc(label)}</td><td class="num">${esc(x.time)}</td><td class="num">${x.found ?? ''}</td><td class="num">${x.remain ?? ''}</td><td class="num">${x.pen ?? ''}</td><td class="warn">${esc(x.warn)}</td><td class="num"><b>${x.score ?? ''}</b></td></tr>` : ''; }).join('');
+  const s = schoolOf(r.team);
+  const why = s ? `School: ${esc(s.org)}, ${esc(s.city)} (${s.conf}: ${esc(s.why)}).` : 'School unknown.';
+  const cisco = r.total != null ? `<div class="sub">Cisco: quiz ${r.quiz}, Packet Tracer ${r.pt} · total ${r.total}</div>` : '';
+  const ov = TL && TL[r.team] ? ` <button class="linkbtn" data-ov="${esc(r.team)}">Show in overlay</button>` : '';
+  return `<div class="detailgrid"><div><table class="inner"><tr><th>Image</th><th class="num">Time</th><th class="num">Found</th><th class="num">Left</th><th class="num">Pen</th><th>**</th><th class="num">Score</th></tr>${rows}</table>${cisco}<div class="sub">${why} <a href="#" data-state="${esc(r.loc)}">Registered teams in ${esc(r.loc)}</a>.${ov}</div></div>${miniChart(r.team)}</div>`;
+}
+
+// overlay
+let ovHi = null; const ovCharts = [];
+function ovTeams() {
+  const n = +$('ovField').value, withG = D.teams.filter(t => TL && TL[t.team]);
+  return n ? withG.filter(t => t.rank <= n) : withG;
+}
+function drawOverlay() {
+  const host = $('ovCharts'); host.innerHTML = ''; ovCharts.length = 0;
+  const teams = ovTeams();
+  // cutoffs for the whole division in this snapshot
+  const sc = D.teams.map(t => t.score).sort((a, b) => b - a), pick = i => sc[Math.min(i, sc.length - 1)];
+  const full = R.images.length * 100;
+  $('cuts').innerHTML = [['Teams', D.teams.length], ['Top 10', pick(9)], ['Top 25', pick(24)], ['Top 50', pick(49)], ['Top 100', pick(99)], ['Top 30%', pick(Math.floor(sc.length * .3))], ['Median', pick(Math.floor(sc.length / 2))], [`Full ${full}`, sc.filter(x => x === full).length]]
+    .map(([k, v]) => `<div class="cut"><span>${k}</span><b>${v ?? '–'}</b></div>`).join('');
+  if (!teams.length) { host.innerHTML = '<div class="note">No score graphs in this snapshot. Pick another snapshot.</div>'; $('ovBars').innerHTML = ''; return; }
+  R.images.forEach(([k, label]) => {
+    const ss = teams.map(t => ({t, s: series(t.team, k)})).filter(x => x.s);
+    const xmax = Math.min(300, Math.max(60, ...ss.map(x => x.s[x.s.length - 1][0])));
+    const reach = th => ss.map(x => firstAt(x.s, th));
+    const r90 = reach(90), r100 = reach(100), n100 = r100.filter(v => v != null).length;
+    const sec = document.createElement('section'); sec.className = 'ovchart';
+    sec.innerHTML = `<header><h2>${esc(label)}</h2><div class="pace"><span>reach 90: <b>${median(r90) ?? '–'}m</b> median</span><span>reach 100: <b>${median(r100) ?? '–'}m</b> median, fastest quarter <b>${q1(r100) ?? '–'}m</b></span><span>at 100: <b>${n100}/${ss.length}</b></span></div></header><canvas aria-label="${esc(label)} score lines"></canvas><div class="tip">&nbsp;</div>`;
+    host.appendChild(sec);
+    const med = []; for (let m = 0; m <= xmax; m += 5) med.push([m, median(ss.map(x => at(x.s, m)))]);
+    const c = {k, ss, xmax, med, cv: sec.querySelector('canvas'), tip: sec.querySelector('.tip')};
+    ovCharts.push(c);
+    c.cv.addEventListener('mousemove', e => ovHover(c, e));
+    c.cv.addEventListener('mouseleave', () => c.tip.innerHTML = '&nbsp;');
+    c.cv.addEventListener('click', e => { const t = ovNearest(c, e); if (t) { ovHi = t.team; $('ovFind').value = t.team; ovDrawAll(); } });
   });
+  // finish distribution
+  $('ovBars').innerHTML = R.images.map(([k, label]) => {
+    const cnt = {}; teams.forEach(t => { const x = t.img[k]; if (!x || x.score == null) return; const key = x.score >= 100 ? 'perfect 100' : `${100 - x.score} pts · ${x.remain ?? '?'} left`; cnt[key] = (cnt[key] || 0) + 1; });
+    const rows = Object.entries(cnt).sort((a, b) => (a[0] === 'perfect 100' ? -1 : b[0] === 'perfect 100' ? 1 : parseInt(a[0]) - parseInt(b[0]))).slice(0, 14);
+    const max = Math.max(1, ...rows.map(r => r[1]));
+    return `<div class="barcard"><h3>${esc(label)}</h3>${rows.map(([lab, n]) => `<div class="barrow"><span>${lab}</span><i class="${lab === 'perfect 100' ? 'zero' : ''}" style="width:${100 * n / max}%"></i><span>${n}</span></div>`).join('')}</div>`;
+  }).join('');
+  requestAnimationFrame(ovDrawAll);
+}
+function geom(cv, xmax) {
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+  const L = 34, Rr = 10, T = 8, B = 22;
+  return {dpr, W: r.width, H: r.height, L, Rr, T, B, x: m => L + (r.width - L - Rr) * m / xmax, y: s => T + (r.height - T - B) * (1 - Math.max(-10, s) / 100)};
+}
+function ovDraw(c) {
+  const g = geom(c.cv, c.xmax), ctx = c.cv.getContext('2d'); ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0); ctx.clearRect(0, 0, g.W, g.H);
+  ctx.font = '11px ' + css('--mono'); ctx.fillStyle = css('--muted'); ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+  for (let s = 0; s <= 100; s += 20) { const y = g.y(s); ctx.beginPath(); ctx.moveTo(g.L, y); ctx.lineTo(g.W - g.Rr, y); ctx.stroke(); ctx.fillText(s, 6, y + 4); }
+  const step = c.xmax > 200 ? 30 : 15;
+  for (let m = 0; m <= c.xmax; m += step) { const x = g.x(m); ctx.beginPath(); ctx.moveTo(x, g.T); ctx.lineTo(x, g.H - g.B); ctx.stroke(); ctx.fillText(m + 'm', x - 10, g.H - 6); }
+  const line = (s, col, w) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); let py = null;
+    s.forEach(([m, sc], i) => { if (m > c.xmax) return; const x = g.x(m), y = g.y(sc); if (i === 0) ctx.moveTo(x, y); else { ctx.lineTo(x, py); ctx.lineTo(x, y); } py = y; }); ctx.stroke(); };
+  const crowd = css('--crowd'), top = css('--top');
+  c.ss.forEach(x => { if (!(x.t.img[c.k] && x.t.img[c.k].score >= 100)) line(x.s, crowd, 1.4); });
+  c.ss.forEach(x => { if (x.t.img[c.k] && x.t.img[c.k].score >= 100) line(x.s, top, 1); });
+  line(c.med.filter(p => p[1] != null), css('--median'), 2.6);
+  if (ovHi) { const h = c.ss.find(x => x.t.team === ovHi); if (h) line(h.s, css('--pick'), 3); }
+}
+const ovDrawAll = () => ovCharts.forEach(ovDraw);
+function ovNearest(c, e) {
+  const g = geom(c.cv, c.xmax), r = c.cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top, m = (mx - g.L) / (g.W - g.L - g.Rr) * c.xmax;
+  let best = null, bd = 12; c.ss.forEach(x => { const v = at(x.s, m); if (v == null) return; const d = Math.abs(g.y(v) - my); if (d < bd) { bd = d; best = x.t; } }); return best;
+}
+function ovHover(c, e) {
+  const t = ovNearest(c, e), g = geom(c.cv, c.xmax), r = c.cv.getBoundingClientRect(), m = Math.max(0, Math.round((e.clientX - r.left - g.L) / (g.W - g.L - g.Rr) * c.xmax));
+  if (t) { const v = at(series(t.team, c.k), m); c.tip.innerHTML = `<b>${esc(t.team)}</b> · Open #${t.rank} · ${esc(t.loc)} · total ${t.score} · ${v} at ${m}m · click to highlight`; }
+  else { const md = c.med.find(p => p[0] >= m); c.tip.innerHTML = `${m}m · median <b>${md && md[1] != null ? md[1] : '–'}</b>`; }
+}
+
+// ---------- loading ----------
+function setView(v) {
+  VIEW = v; document.querySelectorAll('#viewSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v));
+  document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== 'v-' + v);
+  if (v === 'overlay') drawOverlay();
+  if (SNAPMETA) writeHash();
+}
+async function loadSnapshot(round, snapId) {
+  R = IDX.rounds.find(r => r.round === round) || IDX.rounds[IDX.rounds.length - 1];
+  SNAPMETA = R.snapshots.find(s => s.id === snapId) || R.snapshots[R.snapshots.length - 1];
+  $('roundSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.r === R.round));
+  $('snap').innerHTML = R.snapshots.map(s => `<option value="${s.id}">${s.label}${s.final ? ' · final' : ''} · ${s.teams} teams${s.timelines ? ` · ${s.timelines} graphs` : ''}</option>`).join('');
+  $('snap').value = SNAPMETA.id;
+  $('snapBadge').innerHTML = SNAPMETA.final ? '<span class="badge final">final</span>' : '<span class="badge live">round in progress</span>';
+  $('meta').textContent = 'Loading…';
+  const key = `r${R.round}/${SNAPMETA.id}`;
+  if (!cache[key]) cache[key] = Promise.all([getJSON(`site/${key}/teams.json`), getJSON(`site/${key}/timelines.json`).catch(() => ({}))]);
+  [D, TL] = await cache[key];
+  $('meta').textContent = `${R.label} · snapshot ${SNAPMETA.label} · ${D.teams.length.toLocaleString()} Open teams · ${Object.keys(TL).length.toLocaleString()} with score graphs. Click a team for its per-image breakdown and graph.`;
+  $('teamsNote').textContent = `School names aren't on the scoreboard. ${D.teams.filter(t => schoolOf(t.team)).length} teams here have one inferred from the registration list ("certain" = the only registered Open school in that state; "likely" = a block of consecutive team numbers only one school in the state could fill).`;
+  const locs = [...new Set(D.teams.map(t => t.loc))].sort(); const keep = $('fLoc').value;
+  $('fLoc').innerHTML = '<option value="">All locations</option>' + locs.map(l => `<option>${esc(l)}</option>`).join(''); $('fLoc').value = locs.includes(keep) ? keep : '';
+  teamsTable.reset();
+  imagesTable.render();
+  setView(VIEW);
+}
+
+(async function init() {
+  [IDX, SCH] = await Promise.all([getJSON('site/index.json'), getJSON('site/schools.json')]);
+  OURS = IDX.ours || OURS;
+  $('roundSeg').innerHTML = IDX.rounds.map(r => `<button data-r="${r.round}">${r.label}</button>`).join('');
+  $('roundSeg').onclick = e => { const b = e.target.closest('button'); if (b) loadSnapshot(+b.dataset.r); };
+  $('snap').onchange = () => loadSnapshot(R.round, $('snap').value);
+  $('viewSeg').onclick = e => { const b = e.target.closest('button'); if (b) setView(b.dataset.view); };
+
+  teamsTable = makeTable($('tTeams'), teamCols, teamRows, {rowClass: r => r.team === OURS ? 'ours' : '', pager: [$('prev'), $('next'), $('page'), $('tCount')], detail: teamDetail});
+  ['q', 'fLoc', 'fKnown', 'fGraph'].forEach(id => $(id).addEventListener('input', teamsTable.reset));
   $('tTeams').addEventListener('click', e => {
-    const a = e.target.closest('a[data-state]'); if (!a) return;
-    e.preventDefault();
-    const loc = a.dataset.state;
-    $('sState').value = loc; $('sq').value = ''; schools.reset(); showTab('schools');
+    const a = e.target.closest('a[data-state]'); if (a) { e.preventDefault(); $('sState').value = a.dataset.state; $('sq').value = ''; schoolsTable.reset(); setView('schools'); }
+    const b = e.target.closest('button[data-ov]'); if (b) { ovHi = b.dataset.ov; $('ovFind').value = ovHi; $('ovField').value = '0'; setView('overlay'); }
   });
-  ['q', 'fLoc', 'fKnown'].forEach(id => $(id).addEventListener('input', teams.reset));
-  teams.render();
 
-  makeTable($('tImages'), d.imageCols.map((c, i) => ({key: i, label: c, num: i >= 3})), () => d.images).render();
+  imagesTable = makeTable($('tImages'), () => [['division', 'Division'], ['tier', 'Tier'], ['image', 'Image'], ['teams', 'Teams', 1], ['images', 'Images', 1], ['min_score', 'Min', 1], ['max_score', 'Max', 1], ['std_dev', 'Std dev', 1], ['avg_score', 'Average', 1]]
+    .map(([k, label, n]) => ({key: k, label, num: !!n, val: r => r[k] ?? r[{division: 'Division', tier: 'Tier', image: 'Image', teams: 'Teams', images: 'Images', min_score: 'Min Score', max_score: 'Max Score', std_dev: 'Std Dev', avg_score: 'Avg Score'}[k]]})), () => D.stats);
 
-  $('sNote').textContent = `Official CyberPatriot 19 registration list, Open Division only (${d.schools.length.toLocaleString()} teams, list updated ${d.regUpdated}). It has school and team names but no team numbers, so it can't be linked to scoreboard rows one-to-one. Registered teams that haven't competed yet are included.`;
-  const states = [...new Set(d.schools.map(s => s.country === 'CA' ? 'CAN' : s.state))].filter(Boolean).sort();
-  states.forEach(v => $('sState').add(new Option(v, v)));
-  const schoolRows = () => {
-    const q = $('sq').value.trim().toLowerCase(), st = $('sState').value;
-    return (st ? regIn(st) : d.schools).filter(s => !q || [s.org, s.nick, s.city].join(' ').toLowerCase().includes(q));
-  };
-  const schools = makeTable($('tSchools'), [
-    {key: 'org', label: 'School / organization'}, {key: 'nick', label: 'Team nickname'},
-    {key: 'city', label: 'City'}, {key: 'state', label: 'State'}, {key: 'zip', label: 'ZIP'}
-  ], schoolRows, {
-    rowClass: s => s.org === 'Jordan High School' && s.city === 'Fulshear' ? 'ours' : '',
-    pager: [$('sprev'), $('snext'), $('spage'), $('sCount')]
-  });
-  ['sq', 'sState'].forEach(id => $(id).addEventListener('input', schools.reset));
-  schools.render();
-});
+  const regIn = loc => SCH.schools.filter(s => loc === 'CAN' ? s.country === 'CA' : s.state === loc);
+  [...new Set(SCH.schools.map(s => s.country === 'CA' ? 'CAN' : s.state))].filter(Boolean).sort().forEach(v => $('sState').add(new Option(v, v)));
+  $('sNote').textContent = `Official CyberPatriot 19 registration list, Open Division (${SCH.schools.length.toLocaleString()} teams). It has school and team names but no team numbers, so it can't be linked to scoreboard rows one-to-one.`;
+  schoolsTable = makeTable($('tSchools'), () => [{key: 'org', label: 'School / organization'}, {key: 'nick', label: 'Team nickname'}, {key: 'city', label: 'City'}, {key: 'state', label: 'State'}, {key: 'zip', label: 'ZIP'}],
+    () => { const q = $('sq').value.trim().toLowerCase(), st = $('sState').value; return (st ? regIn(st) : SCH.schools).filter(s => !q || [s.org, s.nick, s.city].join(' ').toLowerCase().includes(q)); },
+    {rowClass: s => s.org === 'Jordan High School' && s.city === 'Fulshear' ? 'ours' : '', pager: [$('sprev'), $('snext'), $('spage'), $('sCount')]});
+  ['sq', 'sState'].forEach(id => $(id).addEventListener('input', schoolsTable.reset));
+  schoolsTable.render();
+
+  $('ovField').onchange = drawOverlay;
+  $('ovFind').addEventListener('input', e => { const v = e.target.value.trim(); ovHi = TL && TL[v] ? v : null; ovDrawAll(); });
+  $('ovClear').onclick = () => { ovHi = null; $('ovFind').value = ''; ovDrawAll(); };
+  addEventListener('resize', ovDrawAll);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ovDrawAll);
+
+  const h = readHash(); VIEW = h.view || 'teams';
+  await loadSnapshot(h.round || IDX.rounds[IDX.rounds.length - 1].round, h.snap);
+})().catch(e => { $('meta').textContent = 'Could not load the data: ' + e.message; });
 </script>
 </body>
 </html>

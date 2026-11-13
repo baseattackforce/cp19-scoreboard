@@ -1,0 +1,18 @@
+Division,Tier,Image,Teams,Images,Min Score,Max Score,Std Dev,Avg Score
+All Divisions,All Tiers,Mint21_cp19_r1_se,2371,2371,-7,100,25.67,72.77
+All Divisions,All Tiers,Windows11_cp19_r1_se,2446,2446,-2,100,24.32,75.55
+All Divisions,All Tiers,All Images,2466,4816,-7,100,25.02,74.20
+AFJROTC,High School,Mint21_cp19_r1_se,158,158,0,100,24.19,60.65
+AFJROTC,High School,Windows11_cp19_r1_se,162,162,4,100,23.32,66.81
+AJROTC,High School,Mint21_cp19_r1_se,93,93,6,100,22.69,70.78
+AJROTC,High School,Windows11_cp19_r1_se,104,104,0,100,25.02,71.72
+CAP,High School,Mint21_cp19_r1_se,192,192,-5,100,26.70,60.98
+CAP,High School,Windows11_cp19_r1_se,204,204,-2,100,24.64,68.37
+MCJROTC,High School,Mint21_cp19_r1_se,58,58,0,100,24.72,65.55
+MCJROTC,High School,Windows11_cp19_r1_se,60,60,15,100,21.75,73.05
+NJROTC,High School,Mint21_cp19_r1_se,175,175,0,100,26.60,60.01
+NJROTC,High School,Windows11_cp19_r1_se,201,201,0,100,26.22,63.96
+Open,High School,Mint21_cp19_r1_se,1688,1688,-7,100,24.47,76.91
+Open,High School,Windows11_cp19_r1_se,1707,1707,-2,100,23.19,78.93
+USNSCC,High School,Mint21_cp19_r1_se,6,6,74,100,9.05,84.67
+USNSCC,High School,Windows11_cp19_r1_se,6,6,85,100,6.07,95.83

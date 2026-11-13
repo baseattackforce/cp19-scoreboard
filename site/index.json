@@ -1,0 +1,69 @@
+{
+ "ours": "19-3818",
+ "rounds": [
+  {
+   "round": 1,
+   "label": "Round 1",
+   "images": [
+    [
+     "win",
+     "Windows 11"
+    ],
+    [
+     "mint",
+     "Mint 21"
+    ]
+   ],
+   "snapshots": [
+    {
+     "id": "2026-10-25_1402",
+     "label": "10/25 14:02 CT",
+     "final": false,
+     "teams": 1718,
+     "timelines": 1
+    },
+    {
+     "id": "2026-10-25_2345",
+     "label": "10/25 23:45 CT",
+     "final": false,
+     "teams": 1795,
+     "timelines": 1
+    }
+   ]
+  },
+  {
+   "round": 2,
+   "label": "Round 2",
+   "images": [
+    [
+     "deb",
+     "Debian 12"
+    ],
+    [
+     "win",
+     "Windows 11"
+    ],
+    [
+     "srv",
+     "Server 2022"
+    ]
+   ],
+   "snapshots": [
+    {
+     "id": "2026-11-13_0939",
+     "label": "11/13 09:39 CT",
+     "final": false,
+     "teams": 697,
+     "timelines": 100
+    },
+    {
+     "id": "2026-11-13_1020",
+     "label": "11/13 10:20 CT",
+     "final": false,
+     "teams": 749,
+     "timelines": 749
+    }
+   ]
+  }
+ ]
+}

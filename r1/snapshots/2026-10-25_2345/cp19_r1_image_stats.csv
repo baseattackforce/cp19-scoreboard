@@ -1,0 +1,11 @@
+Division,Tier,Image,Teams,Images,Min Score,Max Score,Std Dev,Avg Score
+All Divisions,All Tiers,All Images,2583,5058,-7,100,23.92,75.47
+All Divisions,All Tiers,Mint21_cp19_r1_se,2491,2491,-7,100,24.72,73.99
+All Divisions,All Tiers,Windows11_cp19_r1_se,2567,2567,-2,100,23.02,76.91
+Open,All Tiers,All Images,1786,3537,-7,100,22.73,79.01
+CAP,All Tiers,All Images,233,453,0,100,23.47,69.33
+NJROTC,All Tiers,All Images,212,392,0,100,26.51,62.66
+AFJROTC,All Tiers,All Images,175,336,0,100,23.64,64.83
+AJROTC,All Tiers,All Images,105,200,4,100,23.54,71.65
+MCJROTC,All Tiers,All Images,65,127,0,100,23.13,71.44
+USNSCC,All Tiers,All Images,7,13,39,100,16.43,87.85
