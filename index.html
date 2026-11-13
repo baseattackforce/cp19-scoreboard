@@ -243,10 +243,17 @@ function teamCols() {
     {key: 'warn', label: '**', cls: () => 'warn'}, {key: 'score', label: 'Images score', num: true}];
   R.images.forEach(([k, label]) => c.push({key: k, label, num: true, val: r => r.img[k] ? r.img[k].score : null}));
   if (D.teams.some(t => t.total != null)) c.push({key: 'total', label: 'Total (with Cisco)', num: true});
-  c.push({key: 'g', label: 'Graph', val: r => TL && TL[r.team] ? 1 : 0, fmt: r => TL && TL[r.team] ? '●' : ''});
+  if (!allGraphs()) c.push({key: 'g', label: 'Graph', val: r => TL && TL[r.team] ? 1 : 0, fmt: r => TL && TL[r.team] ? '●' : ''});
   return c;
 }
 const schoolOf = team => SCH.inferred[team];
+const allGraphs = () => TL && D && Object.keys(TL).length >= D.teams.length;
+function graphNote(n, teams) {   // only worth saying when coverage is partial
+  if (!n) return 'no score graphs';
+  if (n >= teams) return '';
+  if (n === 1) return 'score graph for our team only';
+  return `score graphs for the top ${n}`;
+}
 function teamRows() {
   const q = $('q').value.trim().toLowerCase(), loc = $('fLoc').value;
   return D.teams.filter(t => (!loc || t.loc === loc) && (!$('fKnown').checked || schoolOf(t.team)) && (!$('fGraph').checked || (TL && TL[t.team])) &&
@@ -342,14 +349,15 @@ async function loadSnapshot(round, snapId) {
   R = IDX.rounds.find(r => r.round === round) || IDX.rounds[IDX.rounds.length - 1];
   SNAPMETA = R.snapshots.find(s => s.id === snapId) || R.snapshots[R.snapshots.length - 1];
   $('roundSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.r === R.round));
-  $('snap').innerHTML = R.snapshots.map(s => `<option value="${s.id}">${s.label}${s.final ? ' · final' : ''} · ${s.teams} teams${s.timelines ? ` · ${s.timelines} graphs` : ''}</option>`).join('');
+  $('snap').innerHTML = R.snapshots.map(s => `<option value="${s.id}">${s.label}${s.final ? ' · final' : ''} · ${s.teams} teams${graphNote(s.timelines, s.teams) ? ' · ' + graphNote(s.timelines, s.teams) : ''}</option>`).join('');
   $('snap').value = SNAPMETA.id;
   $('snapBadge').innerHTML = SNAPMETA.final ? '<span class="badge final">final</span>' : '<span class="badge live">round in progress</span>';
   $('meta').textContent = 'Loading…';
   const key = `r${R.round}/${SNAPMETA.id}`;
   if (!cache[key]) cache[key] = Promise.all([getJSON(`site/${key}/teams.json`), getJSON(`site/${key}/timelines.json`).catch(() => ({}))]);
   [D, TL] = await cache[key];
-  $('meta').textContent = `${R.label} · snapshot ${SNAPMETA.label} · ${D.teams.length.toLocaleString()} Open teams · ${Object.keys(TL).length.toLocaleString()} with score graphs. Click a team for its per-image breakdown and graph.`;
+  $('meta').textContent = `${R.label} · snapshot ${SNAPMETA.label} · ${D.teams.length.toLocaleString()} Open teams${graphNote(Object.keys(TL).length, D.teams.length) ? ' · ' + graphNote(Object.keys(TL).length, D.teams.length) : ''}. Click a team for its per-image breakdown${Object.keys(TL).length ? ' and score graph' : ''}.`;
+  $('fGraph').closest('label').hidden = allGraphs(); if (allGraphs()) $('fGraph').checked = false;
   $('teamsNote').textContent = `School names aren't on the scoreboard. ${D.teams.filter(t => schoolOf(t.team)).length} teams here have one inferred from the registration list ("certain" = the only registered Open school in that state; "likely" = a block of consecutive team numbers only one school in the state could fill).`;
   const locs = [...new Set(D.teams.map(t => t.loc))].sort(); const keep = $('fLoc').value;
   $('fLoc').innerHTML = '<option value="">All locations</option>' + locs.map(l => `<option>${esc(l)}</option>`).join(''); $('fLoc').value = locs.includes(keep) ? keep : '';
