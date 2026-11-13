@@ -17,3 +17,8 @@ Endpoints (GET, public): `/api/team/scores.php`, `/api/image/scores.php`,
 `/api/image/stats.php?division=All&tier=All&image=Any`, `/api/image/chart.php?team[]=...` (accepts up to 10 teams).
 
 Images: `Debian12_cp19_intro_r2_hsms` (19 items), `Windows11_cp19_intro_r2_hsms` (19), `Server2022_cp19_r2_hs` (23).
+
+## Snapshots
+Each pull is kept in `snapshots/<date_time>/` (teams, image scores, image stats), so the field can be compared over
+the weekend: how the cutoffs move as more teams play. The top-level CSVs in `r2/` are always the latest pull.
+Rebuild the site data after a new pull with `python3 build_r2.py` (writes `data_r2.json`).

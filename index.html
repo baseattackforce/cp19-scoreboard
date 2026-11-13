@@ -14,6 +14,9 @@ main{max-width:1100px;margin:0 auto;padding:24px 16px 48px}
 h1{font-size:22px;margin:0 0 4px}
 .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
 .note{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:18px}
+.rounds{display:flex;gap:6px;margin:0 0 14px}
+.rounds a{font:inherit;font-size:13px;font-weight:600;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--card)}
+.rounds a[aria-current=page]{color:var(--card);background:var(--accent);border-color:var(--accent)}
 nav{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
 nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);font:inherit;padding:8px 12px;cursor:pointer;white-space:nowrap}
 nav button[aria-selected=true]{color:var(--fg);border-color:var(--accent);font-weight:600}
@@ -46,7 +49,8 @@ footer{margin-top:28px;color:var(--muted);font-size:12px}
 </head>
 <body>
 <main>
-<h1>CyberPatriot 19 · Round 1 · Open Division</h1>
+<h1 id="h1">CyberPatriot 19 · Round 1 · Open Division</h1>
+<div class="rounds"><a href="#r1" id="lr1">Round 1</a><a href="#r2" id="lr2">Round 2</a></div>
 <p class="sub" id="meta"></p>
 <div class="note">Unofficial export of the public CCS scoreboard. Scores and warnings are not verified and may not include penalties; official scores come from the CyberPatriot Program Office. Warning codes: M = Multiple Instances, S = Clock Skew, T = Time Exceeded, U = Multiple UIDs.</div>
 
@@ -137,8 +141,12 @@ function showTab(name) {
 }
 document.querySelector('nav').onclick = e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); };
 
-fetch('data.json').then(r => r.json()).then(d => {
-  $('meta').textContent = `${d.teams.length.toLocaleString()} Open Division teams on the scoreboard · snapshot ${d.exported} · Round 1 was still in progress, so later scores may differ · click a team for its per-image breakdown`;
+const ROUND = location.hash === '#r2' ? 2 : 1;
+window.addEventListener('hashchange', () => location.reload());
+$('lr' + ROUND).setAttribute('aria-current', 'page');
+$('h1').textContent = `CyberPatriot 19 · Round ${ROUND} · Open Division`;
+fetch(ROUND === 2 ? 'data_r2.json' : 'data.json').then(r => r.json()).then(d => {
+  $('meta').textContent = `${d.teams.length.toLocaleString()} Open Division teams on the scoreboard · snapshot ${d.exported} · Round ${d.round || 1} was still in progress, so later scores may differ · click a team for its per-image breakdown`;
 
   d.teams.forEach(t => t.schoolName = t.school ? t.school.org : '');
   $('sNoteTeams').textContent = `School names aren't on the scoreboard. ${d.teams.filter(t => t.school).length} teams have one inferred from the registration list: "certain" means the only registered Open school in that state; "likely" means a block of consecutive team numbers (coaches' teams get consecutive numbers) that only one school in the state registered enough teams to fill.`;
@@ -159,7 +167,7 @@ fetch('data.json').then(r => r.json()).then(d => {
     {key: 'imgs', label: 'Images', num: true},
     {key: 'play', label: 'Play time', num: true}, {key: 'scoreTime', label: 'Score time', num: true},
     {key: 'warn', label: '**', cls: () => 'warn'}, {key: 'score', label: 'CCS score', num: true},
-    {key: 'win', label: 'Windows', num: true}, {key: 'mint', label: 'Mint', num: true}
+    ...(d.imgCols || [['win', 'Windows'], ['mint', 'Mint']]).map(([key, label]) => ({key, label, num: true}))
   ], teamRows, {
     rowClass: r => r.team === OURS ? 'ours' : '',
     pager: [$('prev'), $('next'), $('page'), $('tCount')],
