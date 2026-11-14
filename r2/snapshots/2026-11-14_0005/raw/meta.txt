@@ -1,0 +1,3 @@
+pulled 11/14/2026, 12:05:50 AM CT
+open 1230
+fails 

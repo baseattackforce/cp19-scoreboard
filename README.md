@@ -7,7 +7,7 @@ Pick a round and a snapshot, then a view: **Teams** (search, sort, per-image bre
 
 ## Data
 - `r1/snapshots/<date_time>/`, `r2/snapshots/<date_time>/`: CSV exports per pull (teams, image scores, image stats,
-  score timelines). Round 1 has a graph only for our team; Round 2 10:20 has graphs for every Open team.
+  score timelines). Round 1 has a graph only for our team; Round 2 10:20 and later have graphs for every Open team.
 - `shared/`: registration list and inferred school names.
 - `site/`: built JSON the page loads. Rebuild after adding a snapshot: `python3 build_site.py`.
 
