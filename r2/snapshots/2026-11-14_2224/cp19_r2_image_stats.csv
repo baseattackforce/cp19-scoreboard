@@ -1,0 +1,4 @@
+division,tier,image,teams,images,min_score,max_score,std_dev,avg_score
+All Divisions,All Tiers,Debian12_cp19_intro_r2_hsms,2404,2404,-7,100,30.79,64.11
+All Divisions,All Tiers,Server2022_cp19_r2_hs,2050,2050,-10,100,26.06,60.10
+All Divisions,All Tiers,Windows11_cp19_intro_r2_hsms,2507,2507,-6,100,23.59,65.19
