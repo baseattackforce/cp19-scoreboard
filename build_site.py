@@ -14,7 +14,7 @@ ROUNDS = {
                                        ('srv', 'Server 2022', 'Server2022')]},
 }
 # Snapshots taken while the round was still open (anything after the round closed is final).
-ROUND_CLOSES = {1: '2026-10-27', 2: '2026-11-16'}
+ROUND_CLOSES = {1: '2026-10-27', 2: '2026-11-15'}
 
 
 def read(path):

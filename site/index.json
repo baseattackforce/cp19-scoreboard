@@ -76,6 +76,13 @@
      "final": false,
      "teams": 1567,
      "timelines": 1564
+    },
+    {
+     "id": "2026-11-15_1906",
+     "label": "11/15 19:06 CT",
+     "final": true,
+     "teams": 1788,
+     "timelines": 1785
     }
    ]
   }
