@@ -80,9 +80,16 @@
     {
      "id": "2026-11-15_1906",
      "label": "11/15 19:06 CT",
-     "final": true,
+     "final": false,
      "teams": 1788,
      "timelines": 1785
+    },
+    {
+     "id": "2026-11-16_1507",
+     "label": "11/16 15:07 CT",
+     "final": true,
+     "teams": 1792,
+     "timelines": 1786
     }
    ]
   }

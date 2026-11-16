@@ -137,6 +137,8 @@ for rnd, meta in ROUNDS.items():
         snaps.append({'id': sid, 'label': f'{m.group(2)}/{m.group(3)} {m.group(4)}:{m.group(5)} CT',
                       'final': date >= ROUND_CLOSES[rnd], 'teams': len(teams), 'timelines': len(tl)})
         print(f'r{rnd} {sid}: {len(teams)} Open teams, {len(tl)} timelines, {len(stats)} stat rows')
+    for s_ in snaps[:-1]:
+        s_['final'] = False  # only the newest post-close pull is the final one
     index['rounds'].append({'round': rnd, 'label': meta['label'],
                             'images': [[k, label] for k, label, _ in meta['images']], 'snapshots': snaps})
 json.dump(index, open(os.path.join(OUT, 'index.json'), 'w'), indent=1)
