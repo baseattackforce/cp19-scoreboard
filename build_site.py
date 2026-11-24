@@ -104,6 +104,11 @@ for rnd, meta in ROUNDS.items():
             q, p, tot = pick(r, 'NetAcad Quiz'), pick(r, 'NetAcad Packet Tracer'), pick(r, 'Total')
             if tot:
                 t['quiz'], t['pt'], t['total'] = float(q or 0), float(p or 0), float(tot)
+            r1, comb, tier = pick(r, 'R1 Score'), pick(r, 'Combined'), pick(r, 'Tier')
+            if tier:
+                t['tier'] = tier
+            if comb:
+                t['combined'], t['r1'] = float(comb), float(r1 or 0)
             teams.append(t)
         stats = read(os.path.join(d, f'cp19_r{rnd}_image_stats.csv'))
         # timelines
@@ -135,10 +140,14 @@ for rnd, meta in ROUNDS.items():
         json.dump({'teams': teams, 'stats': stats}, open(os.path.join(sdir, 'teams.json'), 'w'), separators=(',', ':'))
         json.dump(tl, open(os.path.join(sdir, 'timelines.json'), 'w'), separators=(',', ':'))
         snaps.append({'id': sid, 'label': f'{m.group(2)}/{m.group(3)} {m.group(4)}:{m.group(5)} CT',
-                      'final': date >= ROUND_CLOSES[rnd], 'teams': len(teams), 'timelines': len(tl)})
+                      'final': date >= ROUND_CLOSES[rnd], 'teams': len(teams), 'timelines': len(tl),
+                      'official': os.path.exists(os.path.join(d, 'OFFICIAL'))})
         print(f'r{rnd} {sid}: {len(teams)} Open teams, {len(tl)} timelines, {len(stats)} stat rows')
     for s_ in snaps[:-1]:
         s_['final'] = False  # only the newest post-close pull is the final one
+    if any(s_['official'] for s_ in snaps):  # official results supersede every unofficial pull
+        for s_ in snaps:
+            s_['final'] = s_['official']
     index['rounds'].append({'round': rnd, 'label': meta['label'],
                             'images': [[k, label] for k, label, _ in meta['images']], 'snapshots': snaps})
 json.dump(index, open(os.path.join(OUT, 'index.json'), 'w'), indent=1)

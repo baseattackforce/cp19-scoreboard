@@ -11,4 +11,4 @@ Pick a round and a snapshot, then a view: **Teams** (search, sort, per-image bre
 - `shared/`: registration list and inferred school names.
 - `site/`: built JSON the page loads. Rebuild after adding a snapshot: `python3 build_site.py`.
 
-Unofficial: scores may not include penalties; official results come from the CyberPatriot Program Office.
+Unofficial pulls may not include penalties. Round 2 also has the official results (snapshot 2026-11-23_1023, from the CyberPatriot Program Office): totals, Round 1, combined score and tier.

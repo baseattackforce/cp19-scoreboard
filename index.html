@@ -243,6 +243,7 @@ function teamCols() {
     {key: 'warn', label: '**', cls: () => 'warn'}, {key: 'score', label: 'Images score', num: true}];
   R.images.forEach(([k, label]) => c.push({key: k, label, num: true, val: r => r.img[k] ? r.img[k].score : null}));
   if (D.teams.some(t => t.total != null)) c.push({key: 'total', label: 'Total (with Cisco)', num: true});
+  if (D.teams.some(t => t.combined != null)) c.push({key: 'r1', label: 'Round 1', num: true}, {key: 'combined', label: 'R1 + R2', num: true}, {key: 'tier', label: 'Tier'});
   if (!allGraphs()) c.push({key: 'g', label: 'Graph', val: r => TL && TL[r.team] ? 1 : 0, fmt: r => TL && TL[r.team] ? '●' : ''});
   return c;
 }
@@ -263,7 +264,8 @@ function teamDetail(r) {
   const rows = R.images.map(([k, label]) => { const x = r.img[k]; return x ? `<tr><td>${esc(label)}</td><td class="num">${esc(x.time)}</td><td class="num">${x.found ?? ''}</td><td class="num">${x.remain ?? ''}</td><td class="num">${x.pen ?? ''}</td><td class="warn">${esc(x.warn)}</td><td class="num"><b>${x.score ?? ''}</b></td></tr>` : ''; }).join('');
   const s = schoolOf(r.team);
   const why = s ? `School: ${esc(s.org)}, ${esc(s.city)} (${s.conf}: ${esc(s.why)}).` : 'School unknown.';
-  const cisco = r.total != null ? `<div class="sub">Cisco: quiz ${r.quiz}, Packet Tracer ${r.pt} · total ${r.total}</div>` : '';
+  const cisco = (r.total != null ? `<div class="sub">Cisco: quiz ${r.quiz}, Packet Tracer ${r.pt} · total ${r.total}</div>` : '')
+    + (r.tier ? `<div class="sub">Official: Round 1 ${r.r1 ?? '–'} + Round 2 ${r.total ?? '–'} = <b>${r.combined ?? '–'}</b> · tier <b>${esc(r.tier)}</b></div>` : '');
   const ov = TL && TL[r.team] ? ` <button class="linkbtn" data-ov="${esc(r.team)}">Show in overlay</button>` : '';
   return `<div class="detailgrid"><div><table class="inner"><tr><th>Image</th><th class="num">Time</th><th class="num">Found</th><th class="num">Left</th><th class="num">Pen</th><th>**</th><th class="num">Score</th></tr>${rows}</table>${cisco}<div class="sub">${why} <a href="#" data-state="${esc(r.loc)}">Registered teams in ${esc(r.loc)}</a>.${ov}</div></div>${miniChart(r.team)}</div>`;
 }
@@ -349,14 +351,14 @@ async function loadSnapshot(round, snapId) {
   R = IDX.rounds.find(r => r.round === round) || IDX.rounds[IDX.rounds.length - 1];
   SNAPMETA = R.snapshots.find(s => s.id === snapId) || R.snapshots[R.snapshots.length - 1];
   $('roundSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.r === R.round));
-  $('snap').innerHTML = R.snapshots.map(s => `<option value="${s.id}">${s.label}${s.final ? ' · final' : ''} · ${s.teams} teams${graphNote(s.timelines, s.teams) ? ' · ' + graphNote(s.timelines, s.teams) : ''}</option>`).join('');
+  $('snap').innerHTML = R.snapshots.map(s => `<option value="${s.id}">${s.label}${s.official ? ' · official' : s.final ? ' · final' : ''} · ${s.teams} teams${graphNote(s.timelines, s.teams) ? ' · ' + graphNote(s.timelines, s.teams) : ''}</option>`).join('');
   $('snap').value = SNAPMETA.id;
-  $('snapBadge').innerHTML = SNAPMETA.final ? '<span class="badge final">final</span>' : '<span class="badge live">round in progress</span>';
+  $('snapBadge').innerHTML = SNAPMETA.official ? '<span class="badge final">official results</span>' : SNAPMETA.final ? '<span class="badge final">final</span>' : '<span class="badge live">round in progress</span>';
   $('meta').textContent = 'Loading…';
   const key = `r${R.round}/${SNAPMETA.id}`;
   if (!cache[key]) cache[key] = Promise.all([getJSON(`site/${key}/teams.json`), getJSON(`site/${key}/timelines.json`).catch(() => ({}))]);
   [D, TL] = await cache[key];
-  $('meta').textContent = `${R.label} · snapshot ${SNAPMETA.label} · ${D.teams.length.toLocaleString()} Open teams${graphNote(Object.keys(TL).length, D.teams.length) ? ' · ' + graphNote(Object.keys(TL).length, D.teams.length) : ''}. Click a team for its per-image breakdown${Object.keys(TL).length ? ' and score graph' : ''}.`;
+  $('meta').textContent = `${R.label} · snapshot ${SNAPMETA.label} · ${D.teams.length.toLocaleString()} Open teams${graphNote(Object.keys(TL).length, D.teams.length) ? ' · ' + graphNote(Object.keys(TL).length, D.teams.length) : ''}. Click a team for its per-image breakdown${Object.keys(TL).length ? ' and score graph' : ''}.${SNAPMETA.official ? ' Official results: totals, Round 1, combined score and tier come from CyberPatriot; rank is by combined score; per-image detail and graphs are from the last unofficial pull (11/16).' : ''}`;
   $('fGraph').closest('label').hidden = allGraphs(); if (allGraphs()) $('fGraph').checked = false;
   $('teamsNote').textContent = `School names aren't on the scoreboard. ${D.teams.filter(t => schoolOf(t.team)).length} teams here have one inferred from the registration list ("certain" = the only registered Open school in that state; "likely" = a block of consecutive team numbers only one school in the state could fill).`;
   const locs = [...new Set(D.teams.map(t => t.loc))].sort(); const keep = $('fLoc').value;

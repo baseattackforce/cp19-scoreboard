@@ -20,14 +20,16 @@
      "label": "10/25 14:02 CT",
      "final": false,
      "teams": 1718,
-     "timelines": 1
+     "timelines": 1,
+     "official": false
     },
     {
      "id": "2026-10-25_2345",
      "label": "10/25 23:45 CT",
      "final": false,
      "teams": 1795,
-     "timelines": 1
+     "timelines": 1,
+     "official": false
     }
    ]
   },
@@ -54,42 +56,56 @@
      "label": "11/13 09:39 CT",
      "final": false,
      "teams": 697,
-     "timelines": 100
+     "timelines": 100,
+     "official": false
     },
     {
      "id": "2026-11-13_1020",
      "label": "11/13 10:20 CT",
      "final": false,
      "teams": 749,
-     "timelines": 749
+     "timelines": 749,
+     "official": false
     },
     {
      "id": "2026-11-14_0005",
      "label": "11/14 00:05 CT",
      "final": false,
      "teams": 1230,
-     "timelines": 1230
+     "timelines": 1230,
+     "official": false
     },
     {
      "id": "2026-11-14_2224",
      "label": "11/14 22:24 CT",
      "final": false,
      "teams": 1567,
-     "timelines": 1564
+     "timelines": 1564,
+     "official": false
     },
     {
      "id": "2026-11-15_1906",
      "label": "11/15 19:06 CT",
      "final": false,
      "teams": 1788,
-     "timelines": 1785
+     "timelines": 1785,
+     "official": false
     },
     {
      "id": "2026-11-16_1507",
      "label": "11/16 15:07 CT",
-     "final": true,
+     "final": false,
      "teams": 1792,
-     "timelines": 1786
+     "timelines": 1786,
+     "official": false
+    },
+    {
+     "id": "2026-11-23_1023",
+     "label": "11/23 10:23 CT",
+     "final": true,
+     "teams": 1856,
+     "timelines": 1786,
+     "official": true
     }
    ]
   }
