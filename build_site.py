@@ -103,12 +103,12 @@ for rnd, meta in ROUNDS.items():
                  'img': per.get(tn, {})}
             q, p, tot = pick(r, 'NetAcad Quiz'), pick(r, 'NetAcad Packet Tracer'), pick(r, 'Total')
             if tot:
-                t['quiz'], t['pt'], t['total'] = float(q or 0), float(p or 0), float(tot)
+                t['quiz'], t['pt'], t['total'] = round(float(q or 0), 2), round(float(p or 0), 2), round(float(tot), 2)
             r1, comb, tier = pick(r, 'R1 Score'), pick(r, 'Combined'), pick(r, 'Tier')
             if tier:
                 t['tier'] = tier
             if comb:
-                t['combined'], t['r1'] = float(comb), float(r1 or 0)
+                t['combined'], t['r1'] = round(float(comb), 2), round(float(r1 or 0), 2)
             teams.append(t)
         stats = read(os.path.join(d, f'cp19_r{rnd}_image_stats.csv'))
         # timelines
